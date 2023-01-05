@@ -46,5 +46,14 @@ export default {
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
     transpile: [/^element-ui/],
+    extend: ({ module, output }) => {
+      module.rules.unshift({
+        test: /\.worker\.js$/,
+        loader: 'worker-loader'
+      })
+
+      // HMR時にWebWorkerでwindow is not definedになる問題対策
+      output.globalObject = 'this'
+    }
   }
 }
