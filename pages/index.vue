@@ -12,11 +12,23 @@
       <span class="label">試行回数</span>
       <el-input-number v-model="trials"></el-input-number>
     </div>
-    <!-- <div class="variants">
-      <el-button
-      @click="importCsv"
-      >CSVインポート</el-button>
-    </div> -->
+    <div class="variants">
+      <input
+          ref="uploadText"
+          style="display: none"
+          type="file"
+          accept="text/csv"
+          @change="onFileChange"
+        >
+        <el-button
+          type="primary"
+          class="button"
+          plain
+          @click="importCsv"
+        >
+          Import CSV
+        </el-button>
+    </div>
     <table class="decks">
       <thead>
         <tr>
@@ -210,15 +222,11 @@ export default {
       selectDeck:{},
     }
   },
-  computed: {
-    sumShare:() => {
-      return Object.keys(this.deckList).reduce((sum, key) => sum + this.deckList[key].share, 0)
-    }
-  },
   methods: {
     async calclate() {
-      // 占有率の合計値が100になっているかどうかの確認
-      if (this.sumShare !== 100) return alert('占有率の合計が100でありません')
+      const shareSum = Object.keys(this.deckList).reduce((sum, key) => sum + this.deckList[key].share, 0)
+      // 占有率の合計値を四捨五入して100になっているかどうかの確認
+      if (Math.round(shareSum) !== 100) return alert('占有率の合計が100でありません')
       // this.resultの初期化
       this.result = [
         {
@@ -359,7 +367,40 @@ export default {
       const opponentRate = 100 - rate
       const selectedindex = this.deckList.findIndex(deck => deck.deckId === selectDeckId)
       this.deckList[oppIndex].winRate[selectedindex] = opponentRate
-    }
+    },
+    async onFileChange(e) {
+      if (e.target.files.length !== 1) return
+      const file = e.target.files[0]
+      const textPromise = await file.text()
+      this.deckList = []
+
+      const csvArray = textPromise.split('\n')
+      // delete header
+      csvArray.shift()
+      const nestedArray = csvArray.map(deck => deck.split(','))
+      const noPercentArray = nestedArray.map(deckArray => {
+        return deckArray.map(deckContent => deckContent.replace('%', '').replace('\r', ''))
+      })
+      const deckList = noPercentArray.map((deckArray, index) => {
+        const winRate = deckArray.slice(2).map(Number)
+        return {
+          deckId: index + 1,
+          deckName: deckArray[0],
+          share: Number(deckArray[1]),
+          winRate,
+        }
+      })
+      this.deckList = deckList
+
+      // myDeckはとりあえず50で埋める
+      const deckNum = deckList.length
+      const initMyDeckRate = new Array(deckNum)
+      initMyDeckRate.fill(50)
+      this.myDeckRate = initMyDeckRate
+    },
+    importCsv(){
+      this.$refs.uploadText.click()
+    },
   }
 }
 </script>

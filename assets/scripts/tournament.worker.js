@@ -1,6 +1,6 @@
 self.addEventListener('message', (message) => {
   const tournamentResults = []
-  const { playerNum, deckList, myDeckRate, range, round } = message.data
+  const { deckList, myDeckRate, playerNum, range, round } = message.data
   for (let i = 0; i < range; i++) {
     // 1回の大会
     let players = createPlayerDeck(deckList, myDeckRate, playerNum)
