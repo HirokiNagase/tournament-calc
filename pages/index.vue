@@ -12,6 +12,11 @@
       <span class="label">試行回数</span>
       <el-input-number v-model="trials"></el-input-number>
     </div>
+    <!-- <div class="variants">
+      <el-button
+      @click="importCsv"
+      >CSVインポート</el-button>
+    </div> -->
     <table class="decks">
       <thead>
         <tr>
@@ -38,7 +43,9 @@
             >
               Edit
             </button>
-            <button>
+            <button
+            @click="deleteDeck(index)"
+            >
               DEL
             </button>
           </td>
@@ -70,7 +77,9 @@
               <td>{{ myDeckRate[index] }}</td>
             </span>
             <td>
-              <button>
+              <button
+              @click="editMydeck"
+              >
               Edit
               </button>
             </td>
@@ -107,8 +116,9 @@
       close="closeEdit"
       >
       <el-input 
+        v-model="selectDeck.deckName"
         placeholder="デッキ名"
-        v-model="selectDeck.deckName">
+        >
       </el-input>
       <span>メタゲーム占有率</span>
       <el-slider
@@ -123,6 +133,26 @@
           :disabled="deckList[index].deckId === selectDeck.deckId"
           show-input
           @change="changeRate(rate, selectDeck.deckId, index)"
+          >
+        </el-slider>
+      </div>
+    </el-drawer>
+    <el-drawer
+      title="自分のデッキ情報"
+      :visible.sync="myDrawer"
+      direction="rtl"
+      close="closeEdit"
+      >
+      <div v-for="(rate, index) in myDeckRate" :key="index" class="block">
+        <span>対{{ deckList[index].deckName }}の勝率</span>
+        <el-button
+          size="small"
+          @click="setMyDeck(index)"
+          >{{ deckList[index].deckName }}を持ち込む</el-button>
+        <el-slider
+          v-model="myDeckRate[index]"
+          :value="rate"
+          show-input
           >
         </el-slider>
       </div>
@@ -171,16 +201,24 @@ export default {
           ]
         }
       ],
-      myDeckRate: [55, 52, 40],
+      myDeckRate: [50, 50, 50],
       players: [],
       result: [],
       calclated: false,
       drawer: false,
+      myDrawer: false,
       selectDeck:{},
+    }
+  },
+  computed: {
+    sumShare:() => {
+      return Object.keys(this.deckList).reduce((sum, key) => sum + this.deckList[key].share, 0)
     }
   },
   methods: {
     async calclate() {
+      // 占有率の合計値が100になっているかどうかの確認
+      if (this.sumShare !== 100) return alert('占有率の合計が100でありません')
       // this.resultの初期化
       this.result = [
         {
@@ -259,7 +297,7 @@ export default {
       const deckIds = this.deckList.map(deck => {
         return deck.deckId
       })
-      const maxId = Math.max.apply(null, deckIds)
+      const maxId = deckIds.length ? Math.max.apply(null, deckIds) : 0
       const newId = maxId + 1
       // deckNameの初期値は Deck${id}
       const deckName = `Deck${newId}`
@@ -298,6 +336,23 @@ export default {
     edit(index) {
       this.drawer = true
       this.selectDeck = this.deckList[index]
+    },
+    editMydeck() {
+      this.myDrawer = true
+    },
+    setMyDeck(index) {
+      this.myDeckRate = []
+      this.deckList[index].winRate.forEach(rate => {
+        this.myDeckRate.push(rate)
+      })
+    },
+    deleteDeck(index) {
+      this.deckList.splice(index, 1)
+      this.deckList.map(deck => {
+        deck.winRate.splice(index, 1)
+        return deck
+      })
+      this.myDeckRate.splice(index, 1)
     },
     changeRate(rate, selectDeckId,oppIndex) {
       // 勝率の対応する値を入れる
