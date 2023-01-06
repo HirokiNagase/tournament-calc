@@ -23,7 +23,6 @@ self.addEventListener('message', (message) => {
     // 全ラウンド終了
     // Opp計算
     players = calcOpp(players, round)
-
     // 結果保存
     // 1~8のデッキタイプ, 各デッキの8進出率算出    
     const tournamentResult = result(players, deckList)
@@ -38,7 +37,7 @@ function createPlayerDeck(deckList, myDeckRate, playerNum){
   const you = {
     id: 0,
     deckId: 0,
-    deckName: 'yourDeck',
+    deckName: 'myDeck',
     winRate: myDeckRate,
     point: 0,
     matchLog: [],
@@ -47,7 +46,7 @@ function createPlayerDeck(deckList, myDeckRate, playerNum){
     matched: false
   }
   players.push(you)
-  const sortedDecks = deckList.sort((a,b) => a.share - b.share)
+  const sortedDecks = deckList.filter(({share}) => share > 0).sort((a,b) => a.share - b.share)
   for (let i = 1; i <= playerNum - 1; i++) {
     const rand = Math.floor(Math.random() * 100)
     let counter = 0
@@ -226,7 +225,7 @@ function result(players, deckList) {
     const top8Deck = top8Players.filter(player => player.deckId === id)
     return {
       deckId: deck.deckId,
-      rate: top8Deck.length / deckPlayer.length
+      rate: top8Deck.length / deckPlayer.length || 0
     }
   })
   const top8DeckType = top8Players.map(player => {
