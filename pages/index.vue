@@ -35,7 +35,7 @@
             class="button"
             size="small"
             plain
-            @click="exportCsv"
+            @click="dlDialog = true"
           >
             Export CSV
           </el-button>
@@ -140,6 +140,7 @@
           width="180">
         </el-table-column>
         <el-table-column
+          sortable
           prop="top8Average"
           label="平均8入賞率"
           width="180">
@@ -197,6 +198,20 @@
         </el-slider>
       </div>
     </el-drawer>
+    <el-dialog
+      title="CSV ダウンロード"
+      :visible.sync="dlDialog"
+      width="30%"
+      :before-close="handleClose">
+      <span>ファイル名設定</span>
+      <el-input v-model="filename" placeholder="Please input">
+        <template slot="append">.csv</template>
+      </el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dlDialog = false">Cancel</el-button>
+        <el-button type="primary" @click="exportCsv">Download</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -244,10 +259,12 @@ export default {
       myDeckRate: [50, 50, 50],
       players: [],
       result: [],
+      selectDeck: {},
       calclated: false,
       drawer: false,
       myDrawer: false,
-      selectDeck:{},
+      dlDialog: false,
+      filename: ''
     }
   },
   computed: {
@@ -454,7 +471,33 @@ export default {
       this.$refs.uploadText.click()
     },
     exportCsv() {
-      alert('作成中')
+      // alert('作成中')
+      const initText = 'Deck, 占有率(%)'
+      let text = this.deckNames.reduce(
+        (acc, val) => `${acc},${val}`,
+        initText
+      )
+      this.deckList.forEach(deck => {
+        text = text + '\n'
+        const initText = `${deck.deckName},${deck.share}`
+        const record = deck.winRate.reduce(
+          (acc, val) => `${acc},${val}`,
+          initText
+        )
+        text = text + record
+      })
+      const bom = new Uint8Array([0xef, 0xbb, 0xbf])
+      const blob = new Blob([bom, text], { type: "text/csv" })
+
+      const filename = `${this.filename}.csv`
+      const downloadLink = document.createElement("a")
+      downloadLink.download = filename
+      downloadLink.href = URL.createObjectURL(blob)
+      downloadLink.dataset.downloadurl = ["text/csv", downloadLink.download, downloadLink.href].join(":")
+
+      downloadLink.click()
+      this.dlDialog = false
+      this.filename = ''
     }
   }
 }
