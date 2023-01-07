@@ -46,6 +46,7 @@
         :data="deckTableObjcts"
         style="width: 100%"
         max-height="400"
+        :cell-class-name="tableCellClassName"
         >
         <el-table-column
           prop="deckName"
@@ -96,6 +97,7 @@
       <el-table
       :data="myDeckDetail"
       style="width: 100%"
+      :cell-class-name="myDeckTableCellClassName"
       >
         <el-table-column
           prop="deckName"
@@ -499,6 +501,32 @@ export default {
       downloadLink.click()
       this.dlDialog = false
       this.filename = ''
+    },
+    tableCellClassName({row, column, rowIndex, columnIndex}) {
+      if (columnIndex >= 2 ) {
+        const index = (columnIndex - 2).toString()
+        const winRate = row[index]
+        if (winRate >= 55) {
+          return 'advantage'
+        } else if (winRate <= 45) {
+          return 'disadvantage'
+        } else {
+          return ''
+        }
+      }
+    },
+    myDeckTableCellClassName({row, column, rowIndex, columnIndex}) {
+      if (columnIndex >= 1 ) {
+        const index = (columnIndex - 1).toString()
+        const winRate = row[index]
+        if (winRate >= 55) {
+          return 'advantage'
+        } else if (winRate <= 45) {
+          return 'disadvantage'
+        } else {
+          return ''
+        }
+      }
     }
   }
 }
@@ -522,5 +550,13 @@ export default {
 
 .deckTable {
   margin-bottom: 5px;
+}
+
+.el-table .disadvantage {
+  background: oldlace;
+}
+
+.el-table .advantage {
+  background: #f0f9eb;
 }
 </style>
