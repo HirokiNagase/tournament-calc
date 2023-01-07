@@ -172,7 +172,7 @@
           :value="rate"
           :disabled="deckList[index].deckId === selectDeck.deckId"
           show-input
-          @change="changeRate(rate, selectDeck.deckId, index)"
+          @input="changeRate(selectDeck.deckId, index)"
           >
         </el-slider>
       </div>
@@ -430,10 +430,12 @@ export default {
       })
       this.myDeckRate.splice(index, 1)
     },
-    changeRate(rate, selectDeckId,oppIndex) {
+    changeRate(selectDeckId, oppIndex) {
       // 勝率の対応する値を入れる
-      const opponentRate = 100 - rate
       const selectedindex = this.deckList.findIndex(deck => deck.deckId === selectDeckId)
+      const nowRate = this.deckList[selectedindex].winRate[oppIndex]
+      const opponentRate = 100 - nowRate
+
       this.deckList[oppIndex].winRate[selectedindex] = opponentRate
     },
     async onFileChange(e) {
