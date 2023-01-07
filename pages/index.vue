@@ -1,109 +1,135 @@
 <template>
   <div>
-    <div class="variants">
-      <span class="label">大会人数</span>
-      <el-input-number v-model="playerNum"></el-input-number>
+    <div class="flex">
+      <div class="variants">
+        <div class="label">大会人数</div>
+        <el-input-number v-model="playerNum"></el-input-number>
+      </div>
+      <div class="variants">
+        <div class="label">ラウンド数</div>
+        <el-input-number v-model="round"></el-input-number>
+      </div>
+      <div class="variants">
+        <div class="label">試行回数</div>
+        <el-input-number v-model="trials"></el-input-number>
+      </div>
+      <div class="variants -buttons">
+        <input
+            ref="uploadText"
+            style="display: none"
+            type="file"
+            accept="text/csv"
+            @change="onFileChange"
+          >
+          <el-button
+            type="primary"
+            class="button"
+            size="small"
+            plain
+            @click="importCsv"
+          >
+            Import CSV
+          </el-button>
+          <el-button
+            type="primary"
+            class="button"
+            size="small"
+            plain
+            @click="exportCsv"
+          >
+            Export CSV
+          </el-button>
+      </div>
     </div>
-    <div class="variants">
-      <span class="label">ラウンド数</span>
-      <el-input-number v-model="round"></el-input-number>
-    </div>
-    <div class="variants">
-      <span class="label">試行回数</span>
-      <el-input-number v-model="trials"></el-input-number>
-    </div>
-    <div class="variants">
-      <input
-          ref="uploadText"
-          style="display: none"
-          type="file"
-          accept="text/csv"
-          @change="onFileChange"
+    <div class="deckTable">
+      <el-table
+        :data="deckTableObjcts"
+        style="width: 100%"
+        max-height="400"
         >
-        <el-button
-          type="primary"
-          class="button"
-          plain
-          @click="importCsv"
-        >
-          Import CSV
-        </el-button>
-    </div>
-    <table class="decks">
-      <thead>
-        <tr>
-          <th>Deck</th>
-          <th>占有率(%)</th>
-          <span v-for="(deck, index) in deckList" :key="index">
-            <th>{{ deck.deckName }}</th>
-          </span>
-          <th>Console</th>
-        </tr>
-      </thead>
-      <tbody v-for="(deck, index) in deckList" :key="index">
-        <tr>
-          <td>{{ deck.deckName }}</td>
-          <td>{{ deck.share }}</td>
-          <span v-for="(_, subIndex) in deckList" :key="subIndex">
-            <td
-            :class="winrateClass(deck.winRate[subIndex])"
-            >{{ deck.winRate[subIndex] }}</td>
-          </span>
-          <td>
-            <button
-            @click="edit(index)"
-            >
-              Edit
-            </button>
-            <button
-            @click="deleteDeck(index)"
-            >
-              DEL
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <button
-    @click="addDeck"
-    >
-      デッキ追加
-    </button>
-    <div>
-      <table class="myDeck">
-        <thead>
-          <tr>
-            <th>Deck</th>
-            <span v-for="(deck, index) in deckList" :key="index">
-              <th>{{ deck.deckName }}</th>
-            </span>
-            <th>Console</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              myDeck
-            </td>
-            <span v-for="(_, index) in myDeckRate" :key="index">
-              <td>{{ myDeckRate[index] }}</td>
-            </span>
-            <td>
-              <button
-              @click="editMydeck"
+        <el-table-column
+          prop="deckName"
+          label="Deck"
+          width="200">
+        </el-table-column>
+        <el-table-column
+          sortable
+          prop="share"
+          label="占有率(%)"
+          width="100">
+        </el-table-column>
+        <el-table-column
+          v-for="(name, index) in deckNames" :key="index"
+          :prop="index.toString()"
+          :label="name"
+          width="130">
+        </el-table-column>
+        <el-table-column
+          label="Operations"
+          width="120">
+          <template slot-scope="scope">
+            <el-button
+              type="text"
+              size="small"
+              @click="edit(scope.$index)"
               >
               Edit
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </el-button>
+            <el-button
+              type="text"
+              size="small"
+              @click="deleteDeck(scope.$index)"
+              >
+              Remove
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
     </div>
-    <button
-        @click="calclate"
+    <el-button
+          size="small" round
+          @click="addDeck"
+        >
+          デッキ追加
+        </el-button>
+    <div class="deckTable">
+      <el-table
+      :data="myDeckDetail"
+      style="width: 100%"
       >
-        calclate
-      </button>
+        <el-table-column
+          prop="deckName"
+          label="Deck"
+          width="130"
+         />
+        <el-table-column
+          v-for="(name, index) in deckNames" :key="index"
+            :prop="index.toString()"
+            :label="name"
+            width="130"
+          >
+        </el-table-column>
+        <el-table-column
+          label="Edit"
+          width="80"
+          >
+          <el-button
+            type="text"
+            size="small"
+            @click="editMydeck"
+            >
+            Edit
+          </el-button>
+        </el-table-column>
+      </el-table>
+    </div>
+    <el-button
+          round
+          type="danger"
+          @click="calclate"
+        >
+        計算実行
+        </el-button>
     <div v-show="calclated">
       <el-table
         :data="result"
@@ -122,7 +148,8 @@
     </div>
 
     <el-drawer
-      title="デッキ情報修正"
+      class="drawer"
+      :title="selectDeck.deckName"
       :visible.sync="drawer"
       direction="rtl"
       close="closeEdit"
@@ -150,6 +177,7 @@
       </div>
     </el-drawer>
     <el-drawer
+      class="drawer"
       title="自分のデッキ情報"
       :visible.sync="myDrawer"
       direction="rtl"
@@ -179,7 +207,7 @@ export default {
   data() {
     return {
       playerNum: 256,
-      round: 10,
+      round: 8,
       trials: 1000,
       deckList: [
         {
@@ -220,6 +248,29 @@ export default {
       drawer: false,
       myDrawer: false,
       selectDeck:{},
+    }
+  },
+  computed: {
+    deckTableObjcts() {
+      return this.deckList.map(deck => {
+        const column = {...deck}
+        this.deckList.forEach((_, index) => {
+          column[index] = deck.winRate[index]
+        })
+        return column
+      })
+    },
+    deckNames() {
+      return this.deckList.map(deck => deck.deckName)
+    },
+    myDeckDetail() {
+      const myDeck = {
+        deckName: 'myDeck',
+      }
+      this.deckList.forEach((_, index) => {
+        myDeck[index] = this.myDeckRate[index]
+      })
+      return [myDeck]
     }
   },
   methods: {
@@ -310,6 +361,7 @@ export default {
       // deckNameの初期値は Deck${id}
       const deckName = `Deck${newId}`
       // 他のDeckのwinrateとmyDeckRateにも値を追加
+      // 
       this.deckList = this.deckList.map(deck => {
         deck.winRate.push(50)
         return deck
@@ -401,6 +453,30 @@ export default {
     importCsv(){
       this.$refs.uploadText.click()
     },
+    exportCsv() {
+      alert('作成中')
+    }
   }
 }
 </script>
+<style>
+.el-drawer__open .el-drawer.rtl {
+  padding: 5px;
+}
+.flex {
+  display: flex;
+}
+
+.flex > .variants {
+  padding-left: 5px;
+}
+
+.-buttons {
+  margin-top: auto;
+  margin-bottom: 5px;
+}
+
+.deckTable {
+  margin-bottom: 5px;
+}
+</style>
