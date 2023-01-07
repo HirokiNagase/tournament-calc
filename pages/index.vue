@@ -199,17 +199,16 @@
       </div>
     </el-drawer>
     <el-dialog
-      title="CSV ダウンロード"
+      title="Export CSV"
       :visible.sync="dlDialog"
-      width="30%"
-      :before-close="handleClose">
+      width="30%">
       <span>ファイル名設定</span>
       <el-input v-model="filename" placeholder="Please input">
         <template slot="append">.csv</template>
       </el-input>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dlDialog = false">Cancel</el-button>
-        <el-button type="primary" @click="exportCsv">Download</el-button>
+        <el-button type="primary" @click="exportCsv">Export</el-button>
       </span>
     </el-dialog>
   </div>
