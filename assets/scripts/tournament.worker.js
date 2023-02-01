@@ -1,13 +1,14 @@
 self.addEventListener('message', (message) => {
   const tournamentResults = []
-  const { deckList, myDeckRate, playerNum, range, round } = message.data
+  const { deckList, myDeckRate, playerNum, range, round, useMyDeck } =
+    message.data
   for (let i = 0; i < range; i++) {
     // 1回の大会
-    let players = createPlayerDeck(deckList, myDeckRate, playerNum)
+    let players = createPlayerDeck(deckList, myDeckRate, playerNum, useMyDeck)
     for (let nowRound = 0; nowRound < round; nowRound++) {
       // 各ラウンド
       if (nowRound !== 0) {
-        players = players.map(player => {
+        players = players.map((player) => {
           player.matched = false
           return player
         })
@@ -24,14 +25,14 @@ self.addEventListener('message', (message) => {
     // Opp計算
     players = calcOpp(players, round)
     // 結果保存
-    // 1~8のデッキタイプ, 各デッキの8進出率算出    
+    // 1~8のデッキタイプ, 各デッキの8進出率算出
     const tournamentResult = result(players, deckList)
     tournamentResults.push(tournamentResult)
   }
   self.postMessage(tournamentResults)
 })
 
-function createPlayerDeck(deckList, myDeckRate, playerNum){
+function createPlayerDeck(deckList, myDeckRate, playerNum, useMyDeck) {
   const players = []
   // Deckの占有率とプレイヤー数から各デッキに何名使用者がいるかのデータ作成
   const you = {
@@ -43,11 +44,15 @@ function createPlayerDeck(deckList, myDeckRate, playerNum){
     matchLog: [],
     opp: 0,
     mwp: 0,
-    matched: false
+    matched: false,
   }
-  players.push(you)
-  const sortedDecks = deckList.filter(({share}) => share > 0).sort((a,b) => a.share - b.share)
-  for (let i = 1; i <= playerNum - 1; i++) {
+  if (useMyDeck) {
+    players.push(you)
+  }
+  const sortedDecks = deckList
+    .filter(({ share }) => share > 0)
+    .sort((a, b) => a.share - b.share)
+  for (let i = useMyDeck ? 1 : 0; i <= playerNum - 1; i++) {
     const rand = Math.floor(Math.random() * 100)
     let counter = 0
     for (const deck of sortedDecks) {
@@ -60,7 +65,7 @@ function createPlayerDeck(deckList, myDeckRate, playerNum){
           matchLog: [],
           opp: 0,
           mwp: 0,
-          matched: false
+          matched: false,
         }
         players.push(player)
         break
@@ -73,11 +78,13 @@ function createPlayerDeck(deckList, myDeckRate, playerNum){
 function makeMatch(players) {
   const pairing = []
   // ポイントが高いプレイヤーからマッチングを作成
-  const sortedPlayers = players.sort((a,b) => b.opp - a.opp).sort((a,b) => b.point - a.point)
+  const sortedPlayers = players
+    .sort((a, b) => b.opp - a.opp)
+    .sort((a, b) => b.point - a.point)
   let matchedPlayers = sortedPlayers
-  sortedPlayers.forEach(player => {
+  sortedPlayers.forEach((player) => {
     const myId = player.id
-    const matched = matchedPlayers.find(x => x.id === myId)
+    const matched = matchedPlayers.find((x) => x.id === myId)
     if (!matched.matched) {
       // 未マッチングのプレイヤーの中で同数のポイントを確認
       let myPoint = player.point
@@ -89,11 +96,13 @@ function makeMatch(players) {
           break
         }
         // 候補プレイヤー一覧
-        const candidatePlayers = matchedPlayers.filter(candidate => {
-          return candidate.id !== myId
-              && candidate.point === myPoint
-              && candidate.matched === false
-              && logCheck(player, candidate)
+        const candidatePlayers = matchedPlayers.filter((candidate) => {
+          return (
+            candidate.id !== myId &&
+            candidate.point === myPoint &&
+            candidate.matched === false &&
+            logCheck(player, candidate)
+          )
         })
         // 候補0人だったらPOINTを3つ下げるよ
         // 引き分けない前提だから処理速度の都合でこうだけどある時は違う処理にしようね
@@ -103,11 +112,14 @@ function makeMatch(players) {
         } else {
           matchingFlag = true
           // candidatePlayers 配列の中からランダムに1つ選択(それがplayerの対戦相手)
-          const opponent = candidatePlayers[Math.floor(Math.random() * candidatePlayers.length)]
+          const opponent =
+            candidatePlayers[
+              Math.floor(Math.random() * candidatePlayers.length)
+            ]
           const opponentId = opponent.id
 
           pairing.push([player, opponent])
-          matchedPlayers = matchedPlayers.map(x => {
+          matchedPlayers = matchedPlayers.map((x) => {
             if (x.id === opponentId || x.id === myId) {
               x.matched = true
             }
@@ -133,13 +145,13 @@ function game(pairing, players) {
     // まずマッチングログの追加
     // byeの時の処理
     if (player2 === 'bye') {
-      recentPlayers = recentPlayers.map(x => {
+      recentPlayers = recentPlayers.map((x) => {
         if (x.id === player1.id) {
           x.point += 3
         }
         return x
       })
-    } else {          
+    } else {
       // どちらのデッキも自身のデッキでないことの確認(自身のデッキは勝率固有なので)
       const myDeckFlag = player1.deckId === 0 || player2.deckId === 0
       if (myDeckFlag) {
@@ -147,28 +159,37 @@ function game(pairing, players) {
         const playerArray = [player1, player2]
 
         const getIndex = (value, arr, prop) => {
-            for(let i = 0; i < arr.length; i++) {
-                if(arr[i][prop] === value) {
-                    return i;
-                }
+          for (let i = 0; i < arr.length; i++) {
+            if (arr[i][prop] === value) {
+              return i
             }
-            return -1;
+          }
+          return -1
         }
 
-        const myIndex = getIndex(0, playerArray,'deckId') // 0,1
+        const myIndex = getIndex(0, playerArray, 'deckId') // 0,1
         const otherIndex = myIndex === 0 ? 1 : 0
 
-        const myWinrate = playerArray[myIndex].winRate[playerArray[otherIndex].deckId - 1]
+        const myWinrate =
+          playerArray[myIndex].winRate[playerArray[otherIndex].deckId - 1]
         const rand = Math.floor(Math.random() * 100)
         const myDeckWin = rand <= myWinrate // Boolean
         if (myDeckWin) {
-          recentPlayers = win(playerArray[myIndex], playerArray[otherIndex], recentPlayers)
+          recentPlayers = win(
+            playerArray[myIndex],
+            playerArray[otherIndex],
+            recentPlayers
+          )
         } else {
-          recentPlayers = win(playerArray[otherIndex], playerArray[myIndex], recentPlayers)
+          recentPlayers = win(
+            playerArray[otherIndex],
+            playerArray[myIndex],
+            recentPlayers
+          )
         }
       } else {
         // 両者既存のデッキの処理
-        const deck1Winrate =  player1.winRate[player2.deckId - 1]
+        const deck1Winrate = player1.winRate[player2.deckId - 1]
         const rand = Math.floor(Math.random() * 100)
         const player1Win = rand <= deck1Winrate // Boolean
         if (player1Win) {
@@ -183,29 +204,29 @@ function game(pairing, players) {
 }
 
 function win(winPlayer, losePlayer, players) {
-  return players.map(x => {
-        if (x.id === winPlayer.id) {
-          x.matchLog.push(losePlayer.id)
-          x.point += 3
-        } else if (x.id === losePlayer.id) {
-          x.matchLog.push(winPlayer.id)
-        }
-        return x
-      })
+  return players.map((x) => {
+    if (x.id === winPlayer.id) {
+      x.matchLog.push(losePlayer.id)
+      x.point += 3
+    } else if (x.id === losePlayer.id) {
+      x.matchLog.push(winPlayer.id)
+    }
+    return x
+  })
 }
 
 function calcOpp(players, round) {
   // まず全playerのmwpを出してやる
-  const addMwp = players.map(player => {
+  const addMwp = players.map((player) => {
     const mwp = player.point / (round * 3)
     player.mwp = mwp > 0.33 ? mwp : 0.33
     return player
   })
-  const addOpp = addMwp.map(player => {
+  const addOpp = addMwp.map((player) => {
     // 全playerのopp%を出す
     let sumMwp = 0
-    player.matchLog.forEach(opponentId => {
-      const opponent = addMwp.find(x => x.id === opponentId)
+    player.matchLog.forEach((opponentId) => {
+      const opponent = addMwp.find((x) => x.id === opponentId)
       sumMwp += opponent.mwp
     })
     // byeの分はoppは無視？で合ってる？
@@ -215,20 +236,34 @@ function calcOpp(players, round) {
   return addOpp
 }
 
-function result(players, deckList) {
-  const sortedPlayers = players.sort((a,b) => b.opp - a.opp).sort((a,b) => b.point - a.point)
-  const top8Players = sortedPlayers.slice(0,8)
+function arrayShuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    // 0〜(i+1)の範囲で値を取得
+    const r = Math.floor(Math.random() * (i + 1))
+    const tmp = array[i]
+    array[i] = array[r]
+    array[r] = tmp
+  }
+  return array
+}
 
-  const top8Rate = deckList.map(deck => {
+function result(players, deckList) {
+  const randomPlauers = arrayShuffle(players)
+  const sortedPlayers = randomPlauers
+    .sort((a, b) => b.opp - a.opp)
+    .sort((a, b) => b.point - a.point)
+  const top8Players = sortedPlayers.slice(0, 8)
+
+  const top8Rate = deckList.map((deck) => {
     const id = deck.deckId
-    const deckPlayer = players.filter(player => player.deckId === id)
-    const top8Deck = top8Players.filter(player => player.deckId === id)
+    const deckPlayer = players.filter((player) => player.deckId === id)
+    const top8Deck = top8Players.filter((player) => player.deckId === id)
     return {
       deckId: deck.deckId,
-      rate: top8Deck.length / deckPlayer.length || 0
+      rate: top8Deck.length / deckPlayer.length || 0,
     }
   })
-  const top8DeckType = top8Players.map(player => {
+  const top8DeckType = top8Players.map((player) => {
     return player.deckId
   })
   const myDeckIn8 = top8DeckType.includes(0)
@@ -236,7 +271,7 @@ function result(players, deckList) {
   const result = {
     top8Deck: top8DeckType,
     top8Rate,
-    myDeckIn8
+    myDeckIn8,
   }
   return result
 }

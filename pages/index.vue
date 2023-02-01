@@ -15,30 +15,30 @@
       </div>
       <div class="variants -buttons">
         <input
-            ref="uploadText"
-            style="display: none"
-            type="file"
-            accept="text/csv"
-            @change="onFileChange"
-          >
-          <el-button
-            type="primary"
-            class="button"
-            size="small"
-            plain
-            @click="importCsv"
-          >
-            Import CSV
-          </el-button>
-          <el-button
-            type="primary"
-            class="button"
-            size="small"
-            plain
-            @click="dlDialog = true"
-          >
-            Export CSV
-          </el-button>
+          ref="uploadText"
+          style="display: none"
+          type="file"
+          accept="text/csv"
+          @change="onFileChange"
+        />
+        <el-button
+          type="primary"
+          class="button"
+          size="small"
+          plain
+          @click="importCsv"
+        >
+          Import CSV
+        </el-button>
+        <el-button
+          type="primary"
+          class="button"
+          size="small"
+          plain
+          @click="dlDialog = true"
+        >
+          Export CSV
+        </el-button>
       </div>
     </div>
     <div class="deckTable">
@@ -47,105 +47,72 @@
         style="width: 100%"
         max-height="400"
         :cell-class-name="tableCellClassName"
-        >
-        <el-table-column
-          prop="deckName"
-          label="Deck"
-          width="200">
+      >
+        <el-table-column prop="deckName" label="Deck" width="200">
+        </el-table-column>
+        <el-table-column sortable prop="share" label="占有率(%)" width="100">
         </el-table-column>
         <el-table-column
-          sortable
-          prop="share"
-          label="占有率(%)"
-          width="100">
-        </el-table-column>
-        <el-table-column
-          v-for="(name, index) in deckNames" :key="index"
+          v-for="(name, index) in deckNames"
+          :key="index"
           :prop="index.toString()"
           :label="name"
-          width="130">
+          width="130"
+        >
         </el-table-column>
-        <el-table-column
-          label="Operations"
-          width="120">
+        <el-table-column label="Operations" width="120">
           <template slot-scope="scope">
-            <el-button
-              type="text"
-              size="small"
-              @click="edit(scope.$index)"
-              >
+            <el-button type="text" size="small" @click="edit(scope.$index)">
               Edit
             </el-button>
             <el-button
               type="text"
               size="small"
               @click="deleteDeck(scope.$index)"
-              >
+            >
               Remove
             </el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
-    <el-button
-          size="small" round
-          @click="addDeck"
-        >
-          デッキ追加
-        </el-button>
+    <el-button size="small" round @click="addDeck"> デッキ追加 </el-button>
     <div class="deckTable">
+      <span class="laebl">自分のデッキを別で用意する</span>
+      <el-switch v-model="useMyDeck"> </el-switch>
       <el-table
-      :data="myDeckDetail"
-      style="width: 100%"
-      :cell-class-name="myDeckTableCellClassName"
+        v-show="useMyDeck"
+        :data="myDeckDetail"
+        style="width: 100%"
+        :cell-class-name="myDeckTableCellClassName"
       >
+        <el-table-column prop="deckName" label="Deck" width="130" />
         <el-table-column
-          prop="deckName"
-          label="Deck"
+          v-for="(name, index) in deckNames"
+          :key="index"
+          :prop="index.toString()"
+          :label="name"
           width="130"
-         />
-        <el-table-column
-          v-for="(name, index) in deckNames" :key="index"
-            :prop="index.toString()"
-            :label="name"
-            width="130"
-          >
+        >
         </el-table-column>
-        <el-table-column
-          label="Edit"
-          width="80"
-          >
-          <el-button
-            type="text"
-            size="small"
-            @click="editMydeck"
-            >
+        <el-table-column label="Edit" width="80">
+          <el-button type="text" size="small" @click="editMydeck">
             Edit
           </el-button>
         </el-table-column>
       </el-table>
     </div>
-    <el-button
-          round
-          type="danger"
-          @click="calclate"
-        >
-        計算実行
-        </el-button>
+    <el-button round type="danger" @click="calclate"> 計算実行 </el-button>
     <div v-show="calclated">
-      <el-table
-        :data="result"
-        style="width: 100%">
-        <el-table-column
-          prop="deckName"
-          label="Deck"
-          width="180">
+      <el-table :data="result" style="width: 100%">
+        <el-table-column prop="deckName" label="Deck" width="180">
         </el-table-column>
         <el-table-column
           sortable
           prop="top8Average"
           label="平均8入賞率"
-          width="180">
+          width="180"
+        >
         </el-table-column>
       </el-table>
     </div>
@@ -156,18 +123,16 @@
       :visible.sync="drawer"
       direction="rtl"
       close="closeEdit"
-      >
-      <el-input 
-        v-model="selectDeck.deckName"
-        placeholder="デッキ名"
-        >
+    >
+      <el-input v-model="selectDeck.deckName" placeholder="デッキ名">
       </el-input>
       <span>メタゲーム占有率</span>
-      <el-slider
-        v-model="selectDeck.share"
-        show-input>
-      </el-slider>
-      <div v-for="(rate, index) in selectDeck.winRate" :key="index" class="block">
+      <el-slider v-model="selectDeck.share" show-input> </el-slider>
+      <div
+        v-for="(rate, index) in selectDeck.winRate"
+        :key="index"
+        class="block"
+      >
         <span>対{{ deckList[index].deckName }}の勝率</span>
         <el-slider
           v-model="selectDeck.winRate[index]"
@@ -175,7 +140,7 @@
           :disabled="deckList[index].deckId === selectDeck.deckId"
           show-input
           @input="changeRate(selectDeck.deckId, index)"
-          >
+        >
         </el-slider>
       </div>
     </el-drawer>
@@ -185,25 +150,17 @@
       :visible.sync="myDrawer"
       direction="rtl"
       close="closeEdit"
-      >
+    >
       <div v-for="(rate, index) in myDeckRate" :key="index" class="block">
         <span>対{{ deckList[index].deckName }}の勝率</span>
-        <el-button
-          size="small"
-          @click="setMyDeck(index)"
-          >{{ deckList[index].deckName }}を持ち込む</el-button>
-        <el-slider
-          v-model="myDeckRate[index]"
-          :value="rate"
-          show-input
-          >
+        <el-button size="small" @click="setMyDeck(index)"
+          >{{ deckList[index].deckName }}を持ち込む</el-button
+        >
+        <el-slider v-model="myDeckRate[index]" :value="rate" show-input>
         </el-slider>
       </div>
     </el-drawer>
-    <el-dialog
-      title="Export CSV"
-      :visible.sync="dlDialog"
-      width="30%">
+    <el-dialog title="Export CSV" :visible.sync="dlDialog" width="30%">
       <span>ファイル名設定</span>
       <el-input v-model="filename" placeholder="Please input">
         <template slot="append">.csv</template>
@@ -230,32 +187,20 @@ export default {
           deckId: 1,
           deckName: 'Deck1',
           share: 45,
-          winRate: [
-            50,
-            48,
-            55
-          ]
+          winRate: [50, 48, 55],
         },
         {
           deckId: 2,
           deckName: 'Deck2',
           share: 40,
-          winRate: [
-            52,
-            50,
-            48
-          ]
+          winRate: [52, 50, 48],
         },
         {
           deckId: 3,
           deckName: 'Deck3',
           share: 15,
-          winRate: [
-            45,
-            52,
-            50
-          ]
-        }
+          winRate: [45, 52, 50],
+        },
       ],
       myDeckRate: [50, 50, 50],
       players: [],
@@ -265,13 +210,14 @@ export default {
       drawer: false,
       myDrawer: false,
       dlDialog: false,
-      filename: ''
+      useMyDeck: false,
+      filename: '',
     }
   },
   computed: {
     deckTableObjcts() {
-      return this.deckList.map(deck => {
-        const column = {...deck}
+      return this.deckList.map((deck) => {
+        const column = { ...deck }
         this.deckList.forEach((_, index) => {
           column[index] = deck.winRate[index]
         })
@@ -279,7 +225,7 @@ export default {
       })
     },
     deckNames() {
-      return this.deckList.map(deck => deck.deckName)
+      return this.deckList.map((deck) => deck.deckName)
     },
     myDeckDetail() {
       const myDeck = {
@@ -289,29 +235,35 @@ export default {
         myDeck[index] = this.myDeckRate[index]
       })
       return [myDeck]
-    }
+    },
   },
   methods: {
     async calclate() {
-      const shareSum = Object.keys(this.deckList).reduce((sum, key) => sum + this.deckList[key].share, 0)
+      const shareSum = Object.keys(this.deckList).reduce(
+        (sum, key) => sum + this.deckList[key].share,
+        0
+      )
       // 占有率の合計値を四捨五入して100になっているかどうかの確認
-      if (Math.round(shareSum) !== 100) return alert('占有率の合計が100でありません')
+      if (Math.round(shareSum) !== 100)
+        return alert('占有率の合計が100でありません')
       // this.resultの初期化
-      this.result = [
-        {
-          deckId: 0,
-          deckName: 'myDeck',
-          top8Average: 0,
-          sum: 0
-        }
-      ]
+      this.result = this.useMyDeck
+        ? [
+            {
+              deckId: 0,
+              deckName: 'myDeck',
+              top8Average: 0,
+              sum: 0,
+            },
+          ]
+        : []
       // this.resultへ各デッキの初期値を追加
-      this.deckList.forEach(deck => {
+      this.deckList.forEach((deck) => {
         const deckResult = {
           deckId: deck.deckId,
           deckName: deck.deckName,
           top8Average: 0,
-          sum: 0
+          sum: 0,
         }
         this.result.push(deckResult)
       })
@@ -325,7 +277,7 @@ export default {
         const range = to - from
         const promise = new Promise((resolve, reject) => {
           worker.addEventListener('message', (message) => {
-              resolve(message.data)
+            resolve(message.data)
           })
         })
         workers.push(promise)
@@ -334,34 +286,37 @@ export default {
           playerNum: this.playerNum,
           round: this.round,
           deckList: this.deckList,
-          myDeckRate: this.myDeckRate
+          myDeckRate: this.myDeckRate,
+          useMyDeck: this.useMyDeck,
         })
       }
       const loading = this.$loading({
-          lock: true,
-          text: '計算中',
-          spinner: 'el-icon-loading',
-          background: 'rgba(0, 0, 0, 0.7)'
-        })
+        lock: true,
+        text: '計算中',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)',
+      })
       const result = await Promise.all(workers)
       let concated = []
       result.forEach((workerResult) => {
         concated = concated.concat(workerResult)
       })
-      concated.forEach(tournament => {
+      concated.forEach((tournament) => {
         const rateByDeck = tournament.top8Rate
-        rateByDeck.forEach(({deckId, rate}) => {
+        rateByDeck.forEach(({ deckId, rate }) => {
           // 対応するthis.resultの中にrateを加算していく
-          const index = this.result.findIndex(deck => deck.deckId === deckId)
+          const index = this.result.findIndex((deck) => deck.deckId === deckId)
           this.result[index].sum += rate
         })
         if (tournament.myDeckIn8) {
           const MY_DECK_ID = 0
-          const index = this.result.findIndex(deck => deck.deckId === MY_DECK_ID)
+          const index = this.result.findIndex(
+            (deck) => deck.deckId === MY_DECK_ID
+          )
           this.result[index].sum += 1
         }
       })
-      this.result = this.result.map(deck => {
+      this.result = this.result.map((deck) => {
         const num = this.roundDecimal((deck.sum / concated.length) * 100, 2)
         deck.top8Average = `${num}%`
         return deck
@@ -371,7 +326,7 @@ export default {
     },
     addDeck() {
       // deckId出す
-      const deckIds = this.deckList.map(deck => {
+      const deckIds = this.deckList.map((deck) => {
         return deck.deckId
       })
       const maxId = deckIds.length ? Math.max.apply(null, deckIds) : 0
@@ -379,8 +334,8 @@ export default {
       // deckNameの初期値は Deck${id}
       const deckName = `Deck${newId}`
       // 他のDeckのwinrateとmyDeckRateにも値を追加
-      // 
-      this.deckList = this.deckList.map(deck => {
+      //
+      this.deckList = this.deckList.map((deck) => {
         deck.winRate.push(50)
         return deck
       })
@@ -395,7 +350,7 @@ export default {
         deckId: newId,
         deckName,
         share: 0,
-        winRate
+        winRate,
       }
       this.deckList.push(newDeck)
     },
@@ -409,7 +364,7 @@ export default {
       }
     },
     roundDecimal(value, n) {
-      return Math.round(value * Math.pow(10, n) ) / Math.pow(10, n);
+      return Math.round(value * Math.pow(10, n)) / Math.pow(10, n)
     },
     edit(index) {
       this.drawer = true
@@ -420,13 +375,13 @@ export default {
     },
     setMyDeck(index) {
       this.myDeckRate = []
-      this.deckList[index].winRate.forEach(rate => {
+      this.deckList[index].winRate.forEach((rate) => {
         this.myDeckRate.push(rate)
       })
     },
     deleteDeck(index) {
       this.deckList.splice(index, 1)
-      this.deckList.map(deck => {
+      this.deckList.map((deck) => {
         deck.winRate.splice(index, 1)
         return deck
       })
@@ -434,7 +389,9 @@ export default {
     },
     changeRate(selectDeckId, oppIndex) {
       // 勝率の対応する値を入れる
-      const selectedindex = this.deckList.findIndex(deck => deck.deckId === selectDeckId)
+      const selectedindex = this.deckList.findIndex(
+        (deck) => deck.deckId === selectDeckId
+      )
       const nowRate = this.deckList[selectedindex].winRate[oppIndex]
       const opponentRate = 100 - nowRate
 
@@ -449,9 +406,11 @@ export default {
       const csvArray = textPromise.split('\n')
       // delete header
       csvArray.shift()
-      const nestedArray = csvArray.map(deck => deck.split(','))
-      const noPercentArray = nestedArray.map(deckArray => {
-        return deckArray.map(deckContent => deckContent.replace('%', '').replace('\r', ''))
+      const nestedArray = csvArray.map((deck) => deck.split(','))
+      const noPercentArray = nestedArray.map((deckArray) => {
+        return deckArray.map((deckContent) =>
+          deckContent.replace('%', '').replace('\r', '')
+        )
       })
       const deckList = noPercentArray.map((deckArray, index) => {
         const winRate = deckArray.slice(2).map(Number)
@@ -470,17 +429,14 @@ export default {
       initMyDeckRate.fill(50)
       this.myDeckRate = initMyDeckRate
     },
-    importCsv(){
+    importCsv() {
       this.$refs.uploadText.click()
     },
     exportCsv() {
       // alert('作成中')
       const initText = 'Deck, 占有率(%)'
-      let text = this.deckNames.reduce(
-        (acc, val) => `${acc},${val}`,
-        initText
-      )
-      this.deckList.forEach(deck => {
+      let text = this.deckNames.reduce((acc, val) => `${acc},${val}`, initText)
+      this.deckList.forEach((deck) => {
         text = text + '\n'
         const initText = `${deck.deckName},${deck.share}`
         const record = deck.winRate.reduce(
@@ -490,20 +446,24 @@ export default {
         text = text + record
       })
       const bom = new Uint8Array([0xef, 0xbb, 0xbf])
-      const blob = new Blob([bom, text], { type: "text/csv" })
+      const blob = new Blob([bom, text], { type: 'text/csv' })
 
       const filename = `${this.filename}.csv`
-      const downloadLink = document.createElement("a")
+      const downloadLink = document.createElement('a')
       downloadLink.download = filename
       downloadLink.href = URL.createObjectURL(blob)
-      downloadLink.dataset.downloadurl = ["text/csv", downloadLink.download, downloadLink.href].join(":")
+      downloadLink.dataset.downloadurl = [
+        'text/csv',
+        downloadLink.download,
+        downloadLink.href,
+      ].join(':')
 
       downloadLink.click()
       this.dlDialog = false
       this.filename = ''
     },
-    tableCellClassName({row, column, rowIndex, columnIndex}) {
-      if (columnIndex >= 2 ) {
+    tableCellClassName({ row, column, rowIndex, columnIndex }) {
+      if (columnIndex >= 2) {
         const index = (columnIndex - 2).toString()
         const winRate = row[index]
         if (winRate >= 55) {
@@ -515,8 +475,8 @@ export default {
         }
       }
     },
-    myDeckTableCellClassName({row, column, rowIndex, columnIndex}) {
-      if (columnIndex >= 1 ) {
+    myDeckTableCellClassName({ row, column, rowIndex, columnIndex }) {
+      if (columnIndex >= 1) {
         const index = (columnIndex - 1).toString()
         const winRate = row[index]
         if (winRate >= 55) {
@@ -527,8 +487,8 @@ export default {
           return ''
         }
       }
-    }
-  }
+    },
+  },
 }
 </script>
 <style>
