@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div class="flex">
+  <div class="body">
+    <div class="options">
       <div class="variants">
         <div class="label">大会人数</div>
         <el-input-number v-model="playerNum"></el-input-number>
@@ -41,12 +41,13 @@
         </el-button>
       </div>
     </div>
-    <div class="deckTable">
+    <div class="deck_table">
       <el-table
         :data="deckTableObjcts"
         style="width: 100%"
         max-height="400"
         :cell-class-name="tableCellClassName"
+        class="table"
       >
         <el-table-column prop="deckName" label="Deck" width="200">
         </el-table-column>
@@ -77,7 +78,7 @@
       </el-table>
     </div>
     <el-button size="small" round @click="addDeck"> デッキ追加 </el-button>
-    <div class="deckTable">
+    <div class="deck_table">
       <span class="laebl">自分のデッキを別で用意する</span>
       <el-switch v-model="useMyDeck"> </el-switch>
       <el-table
@@ -104,7 +105,7 @@
     </div>
     <el-button round type="danger" @click="calclate"> 計算実行 </el-button>
     <div v-show="calclated">
-      <el-table :data="result" style="width: 100%">
+      <el-table class="table -result" :data="result" style="width: 100%">
         <el-table-column prop="deckName" label="Deck" width="180">
         </el-table-column>
         <el-table-column
@@ -491,32 +492,33 @@ export default {
   },
 }
 </script>
-<style>
-.el-drawer__open .el-drawer.rtl {
-  padding: 5px;
+<style lang="scss" scoped>
+.body {
+  > .options {
+    display: flex;
+    > .variants {
+      padding-left: 5px;
+      &.-buttons {
+        margin-top: auto;
+        margin-bottom: 5px;
+      }
+    }
+  }
+  > .deck_table {
+    margin-bottom: 5px;
+  }
 }
-.flex {
-  display: flex;
+::v-deep .table {
+  .disadvantage {
+    background: oldlace;
+  }
+  .advantage {
+    background: #f0f9eb;
+  }
 }
-
-.flex > .variants {
-  padding-left: 5px;
-}
-
-.-buttons {
-  margin-top: auto;
-  margin-bottom: 5px;
-}
-
-.deckTable {
-  margin-bottom: 5px;
-}
-
-.el-table .disadvantage {
-  background: oldlace;
-}
-
-.el-table .advantage {
-  background: #f0f9eb;
+::v-deep .drawer {
+  .el-drawer__open .el-drawer.rtl {
+    padding: 0 5px;
+  }
 }
 </style>
