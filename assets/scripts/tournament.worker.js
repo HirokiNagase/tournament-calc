@@ -229,7 +229,7 @@ function calcOpp(players, round) {
       const opponent = addMwp.find((x) => x.id === opponentId)
       sumMwp += opponent.mwp
     })
-    // byeの分はoppは無視？で合ってる？
+    // byeの分はoppは無視
     player.opp = sumMwp / player.matchLog.length
     return player
   })
