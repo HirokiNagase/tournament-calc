@@ -91,15 +91,9 @@ export default {
         },
       ],
       myDeckRate: [50, 50, 50],
-      players: [],
-      result: [],
       selectDeck: {},
-      calclated: false,
       drawer: false,
-      myDrawer: false,
-      dlDialog: false,
       useMyDeck: false,
-      filename: '',
     }
   },
   computed: {
@@ -171,15 +165,6 @@ export default {
     edit(index) {
       this.drawer = true
       this.selectDeck = this.deckList[index]
-    },
-    editMydeck() {
-      this.myDrawer = true
-    },
-    setMyDeck(index) {
-      this.myDeckRate = []
-      this.deckList[index].winRate.forEach((rate) => {
-        this.myDeckRate.push(rate)
-      })
     },
     deleteDeck(index) {
       this.deckList.splice(index, 1)
